@@ -1,3 +1,8 @@
+<!--
+Launch a camera node on keith, and an image viewer node here.
+We specify 5 fps to limit power.
+-->
+
 <launch>
     <machine name="keith" address="keith" user="pi" env-loader="/home/pi/env.sh">
     </machine>

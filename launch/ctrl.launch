@@ -1,0 +1,13 @@
+<!--
+Launch the control node on keith, so we can control the motors and
+read the sensors
+-->
+
+<launch>
+    <machine name="keith" address="keith" user="pi" env-loader="/home/pi/env.sh">
+    </machine>
+
+    <node machine="keith" 
+        pkg="keith" name="keith" type="keith_node">
+    </node>
+</launch>
