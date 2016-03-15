@@ -28,6 +28,25 @@ void rightCallback(const std_msgs::Float32::ConstPtr& msg){
     rightSpeed = msg->data;
 }
 
+void setParams(){
+    float temp;
+    
+    MotorParams p;
+    p.pgain = ros::param::get("~pgain",temp) ? temp : 0.02;
+    p.igain = ros::param::get("~igain",temp) ? temp : 0.01;
+    p.dgain = ros::param::get("~dgain",temp) ? temp : 0;
+    p.icap = ros::param::get("~icap",temp) ? temp : 100;
+    p.idecay = ros::param::get("~idecay",temp) ? temp : 0.9;
+    p.deadzone = ros::param::get("~deadzone",temp) ? temp : 0;
+    
+    SlaveData *sd = r.getSlaveData(0);
+    sd->sendMotorParams(0,&p);
+    sd->sendMotorParams(1,&p);
+    sd = r.getSlaveData(1);
+    sd->sendMotorParams(0,&p);
+    sd->sendMotorParams(1,&p);
+}
+
 
 int main(int argc,char *argv[]){
     ros::init(argc,argv,"keith_node");
@@ -48,6 +67,8 @@ int main(int argc,char *argv[]){
         return 1;
     }
     r.resetSlaveExceptions();
+    
+    setParams();
     
     ros::Rate loop_rate(5);
     
