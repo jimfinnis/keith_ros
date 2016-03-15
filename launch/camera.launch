@@ -1,0 +1,22 @@
+<launch>
+    <machine name="keith" address="keith" user="pi" env-loader="/home/pi/env.sh">
+    </machine>
+
+    <node pkg="image_view" name="view" type="image_view">
+        <param name="width" value="320"/>
+        <param name="height" value="240"/>
+        <param name="image" value="/camera/image"/>
+        <param name="image_transport" value="compressed"/>
+        <remap from="image" to="camera/image"/>
+    </node>
+    
+    <node machine="keith" 
+        pkg="raspicam" name="raspicam" type="raspicam_node">
+        <param name="framerate" value="5"/>
+        <param name="width" value="320"/>
+        <param name="height" value="240"/>
+        
+    </node>
+        
+    
+</launch>
