@@ -1,0 +1,10 @@
+<launch>
+    <machine name="keith" address="keith" user="pi" env-loader="/home/pi/env.sh">
+    </machine>
+
+    <include file="$(find keith)/launch/camera.launch" />
+
+    <node machine="keith" 
+        pkg="keith" name="keith" type="keith_node">
+    </node>
+</launch>
