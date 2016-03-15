@@ -23,5 +23,7 @@ motor speeds to be set and sensors to be read.
 - \~idecay
 - \~deadzone
 
-##Launch
+##Launch (to be run on the PC - don't start roscore on the robot!)
+- **all.launch** includes camera.launch and ctrl.launch
 - **camera.launch** just fires up the robot's camera and a local image viewer when run on the PC. 
+- **ctrl.launch** starts keith\_node on the robot
