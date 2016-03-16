@@ -12,7 +12,8 @@ motor speeds to be set and sensors to be read.
 - **/rightmotors** (std\_msgs/Float32): required speed for right motors
 
 ###Topics published
-- **/sonar** (std\_msgs/Float32MultiArray): array of sonar readings
+- **/sonar** (std\_msgs/Float32MultiArray): array of smoothed, remapped readings
+- **/sonar/raw** (std\_msgs/Float32MultiArray): array of raw sonar readings
 
 ###Motor control parameters
 
@@ -22,6 +23,12 @@ motor speeds to be set and sensors to be read.
 - \~icap
 - \~idecay
 - \~deadzone
+
+###Sonar remapping
+The sonar readings are smoothed and remapped into occlusion values, which are from 0 (clear) to 1 (occluded).
+The smoothing is done such that a falling sonar reading will be much less smoothed. Thus, occluding objects will register quickly and die away slowly.
+
+The remapping is currently 5cm=occluded(1), 40cm=clear(0) with a linear range between.
 
 ##Launch (to be run on the PC - don't start roscore on the robot!)
 - **all.launch** includes camera.launch and ctrl.launch
