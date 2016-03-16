@@ -47,8 +47,8 @@ void setParams(){
     sd->sendMotorParams(1,&p);
 }
 
-#define SMOOTHRISING 0.2f
-#define SMOOTHFALLING 0.02f
+#define SMOOTHRISING 0.02f
+#define SMOOTHFALLING 0.2f
 
 class Smoother {
     float val;
@@ -57,6 +57,7 @@ public:
         val=0;
     }
     float run(float f){
+        if(f<1)f=100; // assume zero means nothing found
         if(f>val){
             val = SMOOTHRISING * f + (1.0f-SMOOTHRISING)*val;
         } else {
@@ -64,7 +65,17 @@ public:
         }
     }
 };
-    
+
+#define OCCLUDEMIN 5.0f
+#define OCCLUDEMAX 40.0f
+
+inline float convertSonarToOcclusion(float f){
+    f = (f-OCCLUDEMIN)/(OCCLUDEMAX-OCCLUDEMIN);
+    if(f<0)f=0;
+    if(f>1)f=1;
+    return 1-f;
+}
+          
 
 
 int main(int argc,char *argv[]){
@@ -108,7 +119,10 @@ int main(int argc,char *argv[]){
         // now smooth them
         sonarOut.data.clear();
         for(int i=0;i<3;i++)
-            sonarOut.data.push_back(sonarsmoothers[i].run(m->sonarDists[i]));
+            sonarOut.data.push_back
+              (convertSonarToOcclusion
+               (sonarsmoothers[i].run
+               (m->sonarDists[i])));
         sonarpub.publish(sonarOut);
         
         SlaveData *slave = r.getSlaveData(0);
@@ -121,6 +135,15 @@ int main(int argc,char *argv[]){
         ros::spinOnce();
         loop_rate.sleep();
     }
+    
+    // kill the motors when the loop exits
+    SlaveData *slave = r.getSlaveData(0);
+    slave->setSpeed(0,0);
+    slave->setSpeed(1,0);
+    slave = r.getSlaveData(1);
+    slave->setSpeed(0,0);
+    slave->setSpeed(1,0);
+    r.update();
     
     ros::spin();
     return 0;
