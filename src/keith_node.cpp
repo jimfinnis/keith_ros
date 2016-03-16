@@ -47,6 +47,25 @@ void setParams(){
     sd->sendMotorParams(1,&p);
 }
 
+#define SMOOTHRISING 0.2f
+#define SMOOTHFALLING 0.02f
+
+class Smoother {
+    float val;
+public:
+    Smoother(){
+        val=0;
+    }
+    float run(float f){
+        if(f>val){
+            val = SMOOTHRISING * f + (1.0f-SMOOTHRISING)*val;
+        } else {
+            val = SMOOTHFALLING * f + (1.0f-SMOOTHFALLING)*val;
+        }
+    }
+};
+    
+
 
 int main(int argc,char *argv[]){
     ros::init(argc,argv,"keith_node");
@@ -59,6 +78,8 @@ int main(int argc,char *argv[]){
     
     ros::Publisher sonarpub = n.advertise<std_msgs::Float32MultiArray>
           ("sonar",100);
+    ros::Publisher sonarrawpub = n.advertise<std_msgs::Float32MultiArray>
+          ("sonar/raw",100);
     
     
     r.attachCommsListener(&stat);
@@ -71,15 +92,23 @@ int main(int argc,char *argv[]){
     setParams();
     
     ros::Rate loop_rate(5);
+    Smoother sonarsmoothers[3];
     
     while(ros::ok()){
         r.update();
         MasterData *m= r.getMasterData();
         
+        // output raw sonar
         std_msgs::Float32MultiArray sonarOut;
         sonarOut.data.clear();
         for(int i=0;i<3;i++)
             sonarOut.data.push_back(m->sonarDists[i]);
+        sonarrawpub.publish(sonarOut);
+        
+        // now smooth them
+        sonarOut.data.clear();
+        for(int i=0;i<3;i++)
+            sonarOut.data.push_back(sonarsmoothers[i].run(m->sonarDists[i]));
         sonarpub.publish(sonarOut);
         
         SlaveData *slave = r.getSlaveData(0);
