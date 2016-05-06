@@ -47,8 +47,7 @@ void setParams(){
     sd->sendMotorParams(1,&p);
 }
 
-#define SMOOTHRISING 0.02f
-#define SMOOTHFALLING 0.2f
+static float smoothClosing,smoothReceding;
 
 class Smoother {
     float val;
@@ -59,23 +58,43 @@ public:
     float run(float f){
         if(f<1)f=100; // assume zero means nothing found
         if(f>val){
-            val = SMOOTHRISING * f + (1.0f-SMOOTHRISING)*val;
+            val = smoothReceding * f + (1.0f-smoothReceding)*val;
         } else {
-            val = SMOOTHFALLING * f + (1.0f-SMOOTHFALLING)*val;
+            val = smoothClosing * f + (1.0f-smoothClosing)*val;
         }
     }
 };
 
-#define OCCLUDEMIN 5.0f
-#define OCCLUDEMAX 40.0f
+static float occludeMin;
+static float occludeMax;
 
 inline float convertSonarToOcclusion(float f){
-    f = (f-OCCLUDEMIN)/(OCCLUDEMAX-OCCLUDEMIN);
+    f = (f-occludeMin)/(occludeMax-occludeMin);
     if(f<0)f=0;
     if(f>1)f=1;
     return 1-f;
 }
           
+
+void setSonarParams(){
+    float t;
+    
+    // the range for the occlusion ramp - less than occludemin
+    // and we're fully occluded; greater than occludemax and
+    // we're clear.
+    
+    occludeMin = ros::param::get("~occludemax",t)?t:8.0f;
+    occludeMax = ros::param::get("~occludemax",t)?t:60.0f;
+    
+    // the smoothing parameters: smoothclosing is used when
+    // the sonar detects an object getting nearer; smoothreceding
+    // otherwise. The idea is that for closing objects the sonar
+    // should respond much more quickly.
+    
+    smoothClosing = ros::param::get("~smoothclosing",t)?t:0.2f;
+    smoothReceding = ros::param::get("~smoothreceding",t)?t:0.02f;
+    
+}
 
 
 int main(int argc,char *argv[]){
@@ -101,8 +120,9 @@ int main(int argc,char *argv[]){
     r.resetSlaveExceptions();
     
     setParams();
+    setSonarParams();
     
-    ros::Rate loop_rate(5);
+    ros::Rate loop_rate(10);
     Smoother sonarsmoothers[3];
     
     while(ros::ok()){
