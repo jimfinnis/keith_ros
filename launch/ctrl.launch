@@ -9,5 +9,7 @@ read the sensors
 
     <node machine="keith" 
         pkg="keith" name="keith" type="keith_node">
+        <param name="~pgain" value="0.03"/>
+        <param name="~igain" value="0.005"/>
     </node>
 </launch>
